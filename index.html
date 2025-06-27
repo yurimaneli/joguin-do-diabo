@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivinhe o Número</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --accent-color: #fd79a8;
+            --background-color: #1a1a2e;
+            --container-bg: #16213e;
+            --text-color: #e6e6e6;
+            --correct-color: #00b894;
+            --wrong-color: #d63031;
+            --disabled-color: #636e72;
+            --hint-color: #fdcb6e;
+            --custom-color: #55efc4;
+            --settings-color: #0984e3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            margin-bottom: 25px;
+            font-size: 2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.selected {
+            background-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.4);
+        }
+
+        button:disabled {
+            background-color: var(--disabled-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .hint-btn {
+            background-color: var(--hint-color);
+            color: #2d3436;
+        }
+
+        .custom-btn {
+            background-color: var(--custom-color);
+            color: #2d3436;
+        }
+
+        .settings-btn {
+            background-color: var(--settings-color);
+            margin-top: 10px;
+        }
+
+        .game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .settings-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .range-info {
+            margin: 20px 0;
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .attempts-info {
+            font-size: 1.2rem;
+            margin: 15px 0;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .settings-label {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+
+        input[type="number"], input[type="range"] {
+            padding: 12px 15px;
+            width: 100%;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            font-size: 1.1rem;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus, input[type="range"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(253, 121, 168, 0.3);
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 30px;
+            -webkit-appearance: none;
+            width: 100%;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .message {
+            min-height: 60px;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .message.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .correct {
+            background-color: rgba(0, 184, 148, 0.2);
+            color: var(--correct-color);
+            border: 1px solid var(--correct-color);
+        }
+
+        .wrong {
+            background-color: rgba(214, 48, 49, 0.2);
+            color: var(--wrong-color);
+            border: 1px solid var(--wrong-color);
+        }
+
+        .hint {
+            background-color: rgba(253, 203, 110, 0.2);
+            color: var(--hint-color);
+            border: 1px solid var(--hint-color);
+        }
+
+        .history {
+            margin-top: 20px;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .history-title {
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .restart-btn {
+            margin-top: 25px;
+            background-color: var(--accent-color);
+            padding: 12px 25px;
+            font-size: 1rem;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: var(--hint-color);
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .game-settings {
+            margin-top: 20px;
+            width: 100%;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .difficulty-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .buttons-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .settings-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Adivinhe o Número</h1>
+        
+        <div class="difficulty-buttons">
+            <button id="easy">Fácil (1-10)</button>
+            <button id="medium">Médio (1-50)</button>
+            <button id="hard">Difícil (1-100)</button>
+            <button id="very-hard">Extremo (1-1000)</button>
+            <button class="custom-btn" id="custom">Personalizado</button>
+        </div>
+        
+        <div class="settings-area" id="settingsArea">
+            <div class="settings-group">
+                <div class="settings-row">
+                    <span class="settings-label">Número mínimo:</span>
+                    <input type="number" id="minNumber" min="1" value="1">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Número máximo:</span>
+                    <input type="number" id="maxNumber" min="2" value="100">
+                </div>
+            </div>
+            <button id="startCustomGame">Iniciar Jogo Personalizado</button>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="range-info" id="rangeInfo"></div>
+            <div class="attempts-info" id="attemptsInfo">Tentativas restantes: 3</div>
+            
+            <div class="input-group">
+                <input type="number" id="guessInput" min="1" placeholder="Seu palpite">
+            </div>
+            
+            <div class="buttons-group">
+                <button id="submitGuess">Enviar Palpite</button>
+                <button class="hint-btn" id="hintBtn">Pedir Dica (1/rodada)</button>
+            </div>
+            
+            <div class="timer" id="timer" style="display: none;">30</div>
+            
+            <div class="message" id="message"></div>
+            
+            <div class="history" id="history">
+                <div class="history-title">Histórico de palpites:</div>
+            </div>
+
+            <div class="game-settings">
+                <div class="settings-row">
+                    <span class="settings-label">Tempo para dica (segundos):</span>
+                    <input type="number" id="hintTime" min="5" max="120" value="30">
+                </div>
+            </div>
+            
+            <button class="restart-btn pulse" id="restartBtn">Jogar Novamente</button>
+            <button class="settings-btn" id="changeSettingsBtn">Alterar Configurações</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementos do DOM
+        const difficultyButtons = {
+            easy: document.getElementById('easy'),
+            medium: document.getElementById('medium'),
+            hard: document.getElementById('hard'),
+            veryHard: document.getElementById('very-hard'),
+            custom: document.getElementById('custom')
+        };
+        const gameArea = document.getElementById('gameArea');
+        const settingsArea = document.getElementById('settingsArea');
+        const rangeInfo = document.getElementById('rangeInfo');
+        const guessInput = document.getElementById('guessInput');
+        const submitButton = document.getElementById('submitGuess');
+        const hintButton = document.getElementById('hintBtn');
+        const messageDiv = document.getElementById('message');
+        const attemptsInfo = document.getElementById('attemptsInfo');
+        const historyDiv = document.getElementById('history');
+        const restartButton = document.getElementById('restartBtn');
+        const timerDiv = document.getElementById('timer');
+        const minNumberInput = document.getElementById('minNumber');
+        const maxNumberInput = document.getElementById('maxNumber');
+        const hintTimeInput = document.getElementById('hintTime');
+        const startCustomButton = document.getElementById('startCustomGame');
+        const changeSettingsBtn = document.getElementById('changeSettingsBtn');
+        
+        // Variáveis do jogo
+        let targetNumber = 0;
+        let attemptsLeft = 3;
+        let minNumber = 1;
+        let maxNumber = 10;
+        let currentDifficulty = '';
+        let gameOver = false;
+        let hintUsed = false;
+        let timerInterval;
+        let timeLeft = 30;
+        let hintTime = 30;
+        
+        // Inicializa os event listeners
+        function init() {
+            difficultyButtons.easy.addEventListener('click', () => startGame(1, 10, 'easy'));
+            difficultyButtons.medium.addEventListener('click', () => startGame(1, 50, 'medium'));
+            difficultyButtons.hard.addEventListener('click', () => startGame(1, 100, 'hard'));
+            difficultyButtons.veryHard.addEventListener('click', () => startGame(1, 1000, 'veryHard'));
+            difficultyButtons.custom.addEventListener('click', showCustomSettings);
+            
+            submitButton.addEventListener('click', checkGuess);
+            hintButton.addEventListener('click', showHint);
+            restartButton.addEventListener('click', resetGame);
+            startCustomButton.addEventListener('click', startCustomGame);
+            changeSettingsBtn.addEventListener('click', showMainMenu);
+            
+            guessInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkGuess();
+                }
+            });
+            
+            // Configuração do tempo de dica
+            hintTimeInput.addEventListener('change', () => {
+                hintTime = Math.max(5, Math.min(120, parseInt(hintTimeInput.value) || 30));
+                hintTimeInput.value = hintTime;
+                timeLeft = hintTime; // Atualiza o tempo atual também
+            });
+            
+            // Validação dos inputs personalizados
+            minNumberInput.addEventListener('change', validateCustomInputs);
+            maxNumberInput.addEventListener('change', validateCustomInputs);
+        }
+        
+        // Mostra o menu principal
+        function showMainMenu() {
+            gameArea.style.display = 'none';
+            settingsArea.style.display = 'none';
+            
+            // Remove a seleção de todos os botões
+            Object.values(difficultyButtons).forEach(btn => {
+                btn.classList.remove('selected');
+            });
+        }
+        
+        // Valida os inputs do modo personalizado
+        function validateCustomInputs() {
+            minNumber = Math.max(1, parseInt(minNumberInput.value) || 1);
+            minNumberInput.value = minNumber;
+            
+            maxNumber = Math.max(minNumber + 1, parseInt(maxNumberInput.value) || minNumber + 1);
+            maxNumberInput.value = maxNumber;
+        }
+        
+        // Mostra as configurações personalizadas
+        function showCustomSettings() {
+            // Remove a seleção de todos os botões
+            Object.values(difficultyButtons).forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Adiciona seleção ao botão clicado
+            difficultyButtons.custom.classList.add('selected');
+            
+            // Esconde a área do jogo e mostra as configurações
+            gameArea.style.display = 'none';
+            settingsArea.style.display = 'flex';
+            
+            // Valida os valores iniciais
+            validateCustomInputs();
+        }
+        
+        // Inicia o jogo personalizado
+        function startCustomGame() {
+            startGame(minNumber, maxNumber, 'custom');
+        }
+        
+        // Inicia um novo jogo
+        function startGame(min, max, difficulty) {
+            // Atualiza os valores do jogo
+            minNumber = min;
+            maxNumber = max;
+            currentDifficulty = difficulty;
+            
+            // Esconde as configurações e mostra o jogo
+            settingsArea.style.display = 'none';
+            gameArea.style.display = 'flex';
+            
+            // Configura o jogo
+            targetNumber = Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
+            attemptsLeft = 3;
+            gameOver = false;
+            hintUsed = false;
+            timeLeft = hintTime;
+            
+            // Atualiza a UI
+            rangeInfo.textContent = `Estou pensando em um número entre ${minNumber} e ${maxNumber}.`;
+            attemptsInfo.textContent = `Tentativas restantes: ${attemptsLeft}`;
+            messageDiv.textContent = '';
+            messageDiv.className = 'message';
+            guessInput.value = '';
+            guessInput.min = minNumber;
+            guessInput.max = maxNumber;
+            guessInput.disabled = false;
+            submitButton.disabled = false;
+            hintButton.disabled = false;
+            timerDiv.style.display = 'none';
+            clearInterval(timerInterval);
+            
+            // Limpa o histórico
+            while (historyDiv.children.length > 1) {
+                historyDiv.removeChild(historyDiv.lastChild);
+            }
+            
+            // Foca no input
+            guessInput.focus();
+            
+            console.log('Número secreto:', targetNumber); // Apenas para teste
+        }
+        
+        // Verifica o palpite do jogador
+        function checkGuess() {
+            if (gameOver) return;
+            
+            const guess = parseInt(guessInput.value);
+            
+            // Validação
+            if (isNaN(guess)) {
+                showMessage(`Por favor, insira um número válido.`, 'wrong');
+                guessInput.classList.add('shake');
+                setTimeout(() => guessInput.classList.remove('shake'), 500);
+                return;
+            }
+            
+            if (guess < minNumber || guess > maxNumber) {
+                showMessage(`Por favor, insira um número entre ${minNumber} e ${maxNumber}.`, 'wrong');
+                guessInput.classList.add('shake');
+                setTimeout(() => guessInput.classList.remove('shake'), 500);
+                return;
+            }
+            
+            attemptsLeft--;
+            attemptsInfo.textContent = `Tentativas restantes: ${attemptsLeft}`;
+            hintUsed = false; // Reseta a dica para a próxima tentativa
+            
+            // Adiciona ao histórico
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = `Palpite: ${guess} - ${getComparisonText(guess)}`;
+            historyDiv.appendChild(historyItem);
+            
+            // Rolagem automática para o novo item
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+            
+            // Verifica o palpite
+            if (guess === targetNumber) {
+                showMessage(`🎉 Parabéns! Você acertou o número ${targetNumber}!`, 'correct');
+                endGame(true);
+            } else if (attemptsLeft === 0) {
+                showMessage(`😢 Game Over! O número era ${targetNumber}.`, 'wrong');
+                endGame(false);
+            } else {
+                const hint = guess < targetNumber ? 'maior' : 'menor';
+                showMessage(`Errado! Tente um número ${hint}.`, 'wrong');
+            }
+            
+            // Limpa o input e foca novamente
+            guessInput.value = '';
+            guessInput.focus();
+        }
+        
+        // Mostra uma dica matemática
+        function showHint() {
+            if (hintUsed || gameOver) return;
+            
+            hintUsed = true;
+            hintButton.disabled = true;
+            
+            // Gera uma equação que resulta no número alvo
+            const equation = generateEquation(targetNumber);
+            
+            showMessage(`Dica: Resolva esta equação → ${equation}`, 'hint');
+            
+            // Inicia o timer
+            timeLeft = hintTime;
+            timerDiv.textContent = timeLeft;
+            timerDiv.style.display = 'block';
+            timerDiv.classList.add('blink');
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDiv.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerDiv.style.display = 'none';
+                    showMessage(`⏰ Tempo esgotado! Você perdeu. O número era ${targetNumber}.`, 'wrong');
+                    endGame(false);
+                }
+            }, 1000);
+        }
+        
+        // Gera uma equação matemática que resulta no número alvo
+        function generateEquation(number) {
+            const equationTypes = [
+                () => { // Equação de primeiro grau: ax + b = c
+                    const a = Math.max(1, Math.floor(Math.random() * 5) + 1);
+                    const b = Math.floor(Math.random() * 10);
+                    const c = a * number + b;
+                    return `${a}x + ${b} = ${c}`;
+                },
+                () => { // Equação de segundo grau simples: x² + b = c
+                    const b = Math.floor(Math.random() * 10);
+                    const c = number * number + b;
+                    return `x² + ${b} = ${c}`;
+                },
+                () => { // Equação com raiz quadrada: √(x + a) = b
+                    const b = Math.max(2, Math.floor(Math.random() * 5) + 1);
+                    const a = b * b - number;
+                    return `√(x + ${a}) = ${b}`;
+                },
+                () => { // Equação com multiplicação e divisão: (x * a) / b = c
+                    const a = Math.max(1, Math.floor(Math.random() * 5) + 1);
+                    const b = Math.max(1, Math.floor(Math.random() * 5) + 1);
+                    const c = (number * a) / b;
+                    // Mostrar como fração se não for inteiro
+                    if (Number.isInteger(c)) {
+                        return `(x × ${a}) ÷ ${b} = ${c}`;
+                    } else {
+                        return `(x × ${a})/${b} = ${c.toFixed(1)}`;
+                    }
+                },
+                () => { // Equação com múltiplos termos: a(x + b) - c = d
+                    const a = Math.max(1, Math.floor(Math.random() * 3) + 1);
+                    const b = Math.floor(Math.random() * 5);
+                    const c = Math.floor(Math.random() * 10);
+                    const d = a * (number + b) - c;
+                    return `${a}(x + ${b}) - ${c} = ${d}`;
+                },
+                () => { // Equação com potência: x^a + b = c
+                    const a = Math.max(2, Math.floor(Math.random() * 3) + 1);
+                    const b = Math.floor(Math.random() * 10);
+                    const c = Math.pow(number, a) + b;
+                    return `x^${a} + ${b} = ${c}`;
+                }
+            ];
+            
+            // Escolhe um tipo aleatório de equação
+            const randomType = Math.floor(Math.random() * equationTypes.length);
+            return equationTypes[randomType]();
+        }
+        
+        // Mostra mensagem com animação
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.classList.add('show');
+            }, 10);
+        }
+        
+        // Retorna texto de comparação para o histórico
+        function getComparisonText(guess) {
+            if (guess === targetNumber) return 'Acertou!';
+            return guess < targetNumber ? 'Muito baixo' : 'Muito alto';
+        }
+        
+        // Finaliza o jogo
+        function endGame(win) {
+            gameOver = true;
+            guessInput.disabled = true;
+            submitButton.disabled = true;
+            hintButton.disabled = true;
+            clearInterval(timerInterval);
+            timerDiv.style.display = 'none';
+            
+            if (win) {
+                restartButton.classList.add('pulse');
+            }
+        }
+        
+        // Reinicia o jogo
+        function resetGame() {
+            restartButton.classList.remove('pulse');
+            if (currentDifficulty) {
+                if (currentDifficulty === 'custom') {
+                    startGame(minNumber, maxNumber, 'custom');
+                } else {
+                    const range = currentDifficulty === 'easy' ? 10 : 
+                                  currentDifficulty === 'medium' ? 50 : 
+                                  currentDifficulty === 'hard' ? 100 : 1000;
+                    startGame(1, range, currentDifficulty);
+                }
+            }
+        }
+        
+        // Inicializa o jogo
+        init();
+    </script>
+</body>
+</html>
